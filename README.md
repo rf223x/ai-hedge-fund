@@ -1,5 +1,6 @@
 # AI Hedge Fund
 
+
 This is a proof of concept for an AI-powered hedge fund.  The goal of this project is to explore the use of AI to make trading decisions.  This project is for **educational** purposes only and is not intended for real trading or investment.
 
 This system employs several agents working together:
@@ -82,6 +83,10 @@ GROQ_API_KEY=your-groq-api-key
 # For getting financial data to power the hedge fund
 # Get your Financial Datasets API key from https://financialdatasets.ai/
 FINANCIAL_DATASETS_API_KEY=your-financial-datasets-api-key
+
+# Alpaca API keys for paper trading
+ALPACA_API_KEY=your-alpaca-api-key
+ALPACA_API_SECRET=your-alpaca-api-secret
 ```
 
 **Important**: You must set `OPENAI_API_KEY`, `GROQ_API_KEY`, or `ANTHROPIC_API_KEY` for the hedge fund to work.  If you want to use LLMs from all providers, you will need to set all API keys.
@@ -125,6 +130,10 @@ You can optionally specify the start and end dates to backtest over a specific t
 ```bash
 poetry run python src/backtester.py --ticker AAPL,MSFT,NVDA --start-date 2024-01-01 --end-date 2024-03-01
 ```
+
+# Execute trades based on recommendations
+poetry run python src/execute_trades.py --ticker AAPL,MSFT,NVDA
+
 
 ## Project Structure 
 ```

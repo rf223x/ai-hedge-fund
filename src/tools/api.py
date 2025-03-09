@@ -15,6 +15,7 @@ from data.models import (
     InsiderTrade,
     InsiderTradeResponse,
 )
+from tools.alpaca_api import get_alpaca_prices
 
 # Global cache instance
 _cache = get_cache()
@@ -29,19 +30,26 @@ def get_prices(ticker: str, start_date: str, end_date: str) -> list[Price]:
         if filtered_data:
             return filtered_data
 
-    # If not in cache or no data in range, fetch from API
-    headers = {}
-    if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
-        headers["X-API-KEY"] = api_key
+    # If not in cache or no data in range, fetch from Alpaca
+    alpaca_prices = get_alpaca_prices(ticker, start_date, end_date)
+    
+    if not alpaca_prices:
+        # Fallback to Financial Datasets API if Alpaca fails
+        headers = {}
+        if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
+            headers["X-API-KEY"] = api_key
 
-    url = f"https://api.financialdatasets.ai/prices/?ticker={ticker}&interval=day&interval_multiplier=1&start_date={start_date}&end_date={end_date}"
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
-        raise Exception(f"Error fetching data: {ticker} - {response.status_code} - {response.text}")
+        url = f"https://api.financialdatasets.ai/prices/?ticker={ticker}&interval=day&interval_multiplier=1&start_date={start_date}&end_date={end_date}"
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            raise Exception(f"Error fetching data: {ticker} - {response.status_code} - {response.text}")
 
-    # Parse response with Pydantic model
-    price_response = PriceResponse(**response.json())
-    prices = price_response.prices
+        # Parse response with Pydantic model
+        price_response = PriceResponse(**response.json())
+        prices = price_response.prices
+    else:
+        # Convert Alpaca prices to Price objects
+        prices = [Price(**price) for price in alpaca_prices]
 
     if not prices:
         return []
